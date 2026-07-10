@@ -42,7 +42,7 @@ spec:
           help: 如：京ICP备XXXXXXXX号
 
     - group: style
-      label: 样式设置
+      label: 主题样式
       formSchema:
         - $formkit: color
           name: primary_color
@@ -92,11 +92,11 @@ spec:
           max: 320
           step: 10
           help: 文章页右侧目录（TOC）的宽度（像素），建议 180-320
-        # 代码高亮主题由 Halo plugin-shiki 插件后台配置（亮色/暗色主题），主题不再提供此选项
-
-    - group: font
-      label: 字体设置
-      formSchema:
+        - $formkit: attachment
+          name: default_post_cover
+          label: 文章缺省封面图
+          value: ""
+          help: 文章未设置封面图时默认显示的图片，建议 16:9 横图；留空则显示代码图标占位符
         - $formkit: text
           name: font_family
           label: 正文字体族
@@ -117,10 +117,6 @@ spec:
           label: 等宽字体 CSS 地址
           value: ""
           help: 第三方等宽字体 CSS 链接，留空则不额外加载
-
-    - group: icon
-      label: 图标设置
-      formSchema:
         - $formkit: url
           name: icon_css_url
           label: 图标字体 CSS 地址
@@ -131,6 +127,7 @@ spec:
           label: 图标类名前缀
           value: "iconfont"
           help: 图标 CSS 类名前缀，用于导航菜单图标。内置 iconfont 使用 iconfont，Font Awesome 使用 fa-solid/fas，Remix Icon 使用 ri，Lucide 使用 lucide
+        # 代码高亮主题由 Halo plugin-shiki 插件后台配置（亮色/暗色主题），主题不再提供此选项
 
     - group: social
       label: 社交链接
@@ -185,11 +182,11 @@ spec:
           help: 留空则使用默认 RSS 地址
 
     - group: featured
-      label: 精选文章
+      label: 精选轮播
       formSchema:
         - $formkit: switch
           name: show_featured
-          label: 启用精选文章
+          label: 启用精选轮播
           value: true
           help: 在首页顶部显示精选文章轮播卡片
         - $formkit: attachment
