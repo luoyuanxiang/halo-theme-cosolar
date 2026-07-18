@@ -34,10 +34,10 @@
 
           <p
             class="topic-desc"
-            th:if="${category.spec.description}"
+            th:if="${category.spec.description != null and !#strings.isEmpty(category.spec.description)}"
             th:text="${category.spec.description}"
           ></p>
-          <p class="topic-desc" th:unless="${category.spec.description}">
+          <p class="topic-desc" th:unless="${category.spec.description != null and !#strings.isEmpty(category.spec.description)}">
             记录此分类下的每一次思考与沉淀
           </p>
 

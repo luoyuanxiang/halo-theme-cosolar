@@ -32,9 +32,10 @@
         <a
           th:each="cat : ${categories}"
           th:href="@{${cat.status.permalink}}"
-          th:class="${cat.spec.cover} ? 'category-card has-cover' : 'category-card'"
+          th:with="catCover = ${cat.spec.cover != null and !#strings.isEmpty(cat.spec.cover)}"
+          th:class="${catCover} ? 'category-card has-cover' : 'category-card'"
         >
-          <div class="cat-cover" th:if="${cat.spec.cover}">
+          <div class="cat-cover" th:if="${catCover}">
             <img th:src="${cat.spec.cover}" alt="" loading="lazy" />
           </div>
           <div class="cat-body">
@@ -53,7 +54,7 @@
             </div>
             <div
               class="cat-desc"
-              th:if="${cat.spec.description}"
+              th:if="${cat.spec.description != null and !#strings.isEmpty(cat.spec.description)}"
               th:text="${cat.spec.description}"
             ></div>
           </div>

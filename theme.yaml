@@ -14,8 +14,14 @@ spec:
   issues: https://github.com/cosolar/halo-theme-cosolar/issues
   settingName: "cosolar-setting"
   configMapName: "cosolar-configMap"
-  version: 1.0.4
+  version: 1.0.5
   requires: ">=2.20.0"
+  customTemplates:
+    page:
+      - name: feeds
+        description: RSS 资讯日报页面，聚合友情链接插件的 RSS 订阅动态
+        screenshot:
+        file: feeds.html
   license:
     - name: "GPL-3.0"
       url: "https://github.com/cosolar/halo-theme-cosolar/blob/main/LICENSE"

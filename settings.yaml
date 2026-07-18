@@ -13,13 +13,21 @@ spec:
           value: ""
           help: 上传 Logo 图片，留空则显示默认的代码图标
         - $formkit: number
-          name: logo_image_size
-          label: Logo 图片尺寸
+          name: logo_image_width
+          label: Logo 图片宽度
           value: 36
           min: 20
           max: 80
           step: 2
-          help: Logo 图片的显示尺寸（像素），建议 20-80
+          help: Logo 图片的显示宽度（像素），建议 20-80
+        - $formkit: number
+          name: logo_image_height
+          label: Logo 图片高度
+          value: 36
+          min: 20
+          max: 80
+          step: 2
+          help: Logo 图片的显示高度（像素），建议 20-80
         - $formkit: text
           name: logo_text
           label: Logo 文字
@@ -355,6 +363,70 @@ spec:
           value: 4
           min: 1
           max: 30
+        - $formkit: switch
+          name: show_sidebar_links
+          label: 显示友情链接模块
+          value: true
+          help: 在侧边栏显示友情链接模块，展示随机友链
+        - $formkit: number
+          name: sidebar_links_count
+          label: 友情链接显示数量
+          value: 10
+          min: 1
+          max: 30
+          step: 1
+          help: 侧边栏友情链接模块最多展示的友链数量
+        - $formkit: switch
+          name: show_sidebar_feeds
+          label: 显示订阅资讯模块
+          value: true
+          help: 在侧边栏显示订阅资讯模块，展示友站 RSS 最新动态；需启用插件 RSS 订阅公开功能
+        - $formkit: number
+          name: sidebar_feeds_count
+          label: 订阅资讯显示数量
+          value: 10
+          min: 1
+          max: 30
+          step: 1
+          help: 侧边栏订阅资讯模块最多展示的资讯条目数量
+        - $formkit: array
+          name: sidebar_modules
+          label: 侧边栏模块顺序
+          help: 拖动每行可调整模块上下顺序；点击删除可隐藏对应模块，点击"添加模块"可重新加入；模块需在下方各自设置中已开启才会显示
+          addLabel: 添加模块
+          min: 0
+          max: 8
+          value:
+            - module: author
+            - module: announcement
+            - module: tag_cloud
+            - module: wechat
+            - module: categories
+            - module: recent
+            - module: links
+            - module: feeds
+          children:
+            - $formkit: select
+              name: module
+              label: 模块
+              value: author
+              options:
+                - label: 博主展示
+                  value: author
+                - label: 公告
+                  value: announcement
+                - label: 热门标签
+                  value: tag_cloud
+                - label: 公众号
+                  value: wechat
+                - label: 分类导航
+                  value: categories
+                - label: 近期更新
+                  value: recent
+                - label: 友情链接
+                  value: links
+                - label: 订阅资讯
+                  value: feeds
 
     - group: category
       label: 分类页设置
@@ -397,6 +469,52 @@ spec:
           label: 归档页封面图
           value: ""
           help: 归档页顶部 Header 区域的背景封面图，留空则显示默认渐变背景
+
+    - group: links
+      label: 友情链接页设置
+      formSchema:
+        - $formkit: text
+          name: links_title
+          label: 页面标题
+          value: "友情链接"
+          help: 友情链接页面的标题文字
+        - $formkit: text
+          name: links_subtitle
+          label: 页面副标题
+          value: "与优秀的开发者们互相学习，共同进步，以下是我精心挑选的技术伙伴们"
+          help: 显示在友情链接页标题下方的描述文字
+        - $formkit: attachment
+          name: links_cover
+          label: 友情链接页封面图
+          value: ""
+          help: 友情链接页顶部 Hero 区域的背景封面图，留空则显示默认渐变背景
+
+    - group: feeds
+      label: RSS 资讯页设置
+      formSchema:
+        - $formkit: text
+          name: feeds_title
+          label: 页面标题
+          value: "RSS 资讯"
+          help: RSS 资讯页面的标题文字
+        - $formkit: text
+          name: feeds_subtitle
+          label: 页面副标题
+          value: "聚合优质信息源，掌握技术前沿动态"
+          help: 显示在标题下方的描述文字
+        - $formkit: attachment
+          name: feeds_cover
+          label: 页面封面图
+          value: ""
+          help: RSS 资讯页顶部 Hero 区域的背景封面图，留空则显示默认渐变背景
+        - $formkit: number
+          name: feeds_page_size
+          label: 每页资讯数量
+          value: 10
+          min: 5
+          max: 50
+          step: 5
+          help: 每页显示的 RSS 资讯条目数量，建议 10-30
 
     - group: background_light
       label: 页面背景 · 浅色模式
@@ -523,3 +641,51 @@ spec:
           max: 0.5
           step: 0.05
           help: 动态背景的不透明度，值越小越淡
+
+    - group: login
+      label: 登录页面
+      formSchema:
+        - $formkit: number
+          name: brand_ratio
+          label: 左侧品牌区占比
+          value: 33
+          min: 20
+          max: 60
+          step: 1
+          help: 登录页左侧品牌展示区占整个页面的宽度百分比，剩余部分留给右侧登录表单，建议 20-60
+        - $formkit: switch
+          name: brand_overlay_enabled
+          label: 显示遮罩层
+          value: true
+          help: 是否在左侧品牌区背景图上叠加渐变遮罩层以保证文字可读；关闭后不显示任何遮罩，直接透出背景图
+        - $formkit: color
+          name: brand_overlay_color
+          label: 遮罩渐变主色
+          value: "#059669"
+          help: 左侧品牌区遮罩层的渐变主色，由该颜色按透明度从实色渐变到透明（配合下方"遮罩渐变透明度"控制起始不透明度）
+        - $formkit: color
+          name: brand_overlay_color_dark
+          label: 遮罩渐变主色（深色模式）
+          value: "#059669"
+          help: 深色模式下左侧品牌区遮罩层的渐变主色
+        - $formkit: range
+          name: brand_overlay_opacity
+          label: 遮罩渐变透明度
+          value: 0.6
+          min: 0
+          max: 1
+          step: 0.05
+          help: 遮罩渐变起始处（最实）的不透明度，0 为完全透明，1 为完全不透明；向下渐变至透明
+        - $formkit: range
+          name: brand_overlay_opacity_dark
+          label: 遮罩渐变透明度（深色模式）
+          value: 0.5
+          min: 0
+          max: 1
+          step: 0.05
+          help: 深色模式下遮罩渐变起始处的不透明度
+        - $formkit: color
+          name: brand_text_color
+          label: 品牌区文字颜色
+          value: "#FFFFFF"
+          help: 左侧品牌区内 Logo、站点名、标语等文字颜色
