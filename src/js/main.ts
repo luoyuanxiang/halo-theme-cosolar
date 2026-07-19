@@ -393,4 +393,35 @@ import "../css/main.css";
   }
 
   initDynamicBackground();
+
+  // ===== 页脚订阅：功能待开发提示气泡 =====
+  (function initSubscribeTip(): void {
+    const form = document.querySelector(".footer-subscribe-form") as HTMLFormElement | null;
+    if (!form) return;
+
+    // 已配置真实订阅地址时不拦截，走正常提交
+    const action = form.getAttribute("action") || "";
+    if (action && action !== "#") return;
+
+    let tip: HTMLElement | null = null;
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function showTip(): void {
+      if (!tip) {
+        tip = document.createElement("div");
+        tip.className = "footer-subscribe-tip";
+        tip.textContent = "功能待开发，敬请期待～";
+        form!.appendChild(tip);
+      }
+      // 触发过渡
+      requestAnimationFrame(() => tip?.classList.add("is-visible"));
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => tip?.classList.remove("is-visible"), 2500);
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      showTip();
+    });
+  })();
 })();

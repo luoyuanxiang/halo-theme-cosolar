@@ -9,10 +9,13 @@
     th:classappend="${theme.config?.sidebar?.show_sidebar == false ? ' no-sidebar' : ''}"
   >
     <!-- ===== Content Area ===== -->
-    <div class="content-area">
-      <!-- Featured Carousel (first page only) -->
+    <div
+      class="content-area"
+      th:attr="data-load-mode=${theme.config?.featured?.home_load_mode ?: 'pagination'}"
+    >
+      <!-- Featured Carousel (每页均渲染，避免刷新非首页时丢失) -->
       <th:block
-        th:if="${posts.first and theme.config?.featured?.show_featured != false}"
+        th:if="${theme.config?.featured?.show_featured != false}"
         th:with="
                   configuredPosts = ${theme.config?.featured?.featured_posts},
                   hasConfigured = ${configuredPosts != null and configuredPosts.size() > 0},
@@ -513,25 +516,40 @@
         <p>暂无文章，敬请期待</p>
       </div>
 
-      <!-- View More Link -->
-      <div class="mt-4 text-center" th:if="${posts.hasNext()}">
-        <a class="btn btn-outline" th:href="@{${posts.nextUrl}}">
-          查看更多文章
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            style="width: 14px; height: 14px"
-          >
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </a>
-      </div>
+      <!-- 滚动加载模式：手动「查看更多」+ 自动滚动哨兵 -->
+      <th:block
+        th:if="${theme.config?.featured?.home_load_mode == 'scroll'}"
+      >
+        <div class="mt-4 text-center" th:if="${posts.hasNext()}">
+          <a class="btn btn-outline" th:href="@{${posts.nextUrl}}">
+            查看更多文章
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              style="width: 14px; height: 14px"
+            >
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </a>
+        </div>
+        <div
+          class="load-sentinel text-center"
+          th:if="${posts.hasNext()}"
+          th:attr="data-next-url=@{${posts.nextUrl}}"
+        >
+          <span class="sentinel-text">向下滚动加载更多</span>
+        </div>
+      </th:block>
 
-      <!-- Pagination -->
-      <include src="pagination.html"></include>
+      <!-- 分页模式：翻页导航 -->
+      <th:block
+        th:if="${theme.config?.featured?.home_load_mode != 'scroll'}"
+      >
+        <include src="pagination.html"></include>
+      </th:block>
     </div>
 
     <!-- ===== Sidebar ===== -->

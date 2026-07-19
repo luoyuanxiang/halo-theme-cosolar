@@ -49,6 +49,117 @@ spec:
           value: ""
           help: 如：京ICP备XXXXXXXX号
 
+    - group: footer
+      label: 页脚设置
+      formSchema:
+        - $formkit: attachment
+          name: logo_image
+          label: 页脚 Logo 图片
+          value: ""
+          help: 页脚品牌区显示的 Logo 图片，留空则使用"基础设置"中的 Logo 或默认图标
+        - $formkit: number
+          name: logo_image_width
+          label: 页脚 Logo 宽度
+          value: 36
+          min: 20
+          max: 80
+          step: 2
+          help: 页脚 Logo 显示宽度（像素），建议 20-80
+        - $formkit: number
+          name: logo_image_height
+          label: 页脚 Logo 高度
+          value: 36
+          min: 20
+          max: 80
+          step: 2
+          help: 页脚 Logo 显示高度（像素），建议 20-80
+        - $formkit: text
+          name: logo_text
+          label: 页脚Logo显示名称
+          value: ""
+          help: 页脚品牌区显示的名称
+        - $formkit: text
+          name: tagline
+          label: 页脚标语
+          value: ""
+          help: 页脚品牌区显示的标语，留空则使用站点标语
+        - $formkit: textarea
+          name: footer_description
+          label: 页脚站点简介
+          value: ""
+          help: 页脚品牌区下方的站点简介，留空则使用页脚标语
+        - $formkit: attachment
+          name: bg_image
+          label: 页脚背景图片
+          value: ""
+          help: 页脚背景图片，建议浅色调、低饱和度图片以免影响内容阅读；留空则不显示背景图
+        - $formkit: range
+          name: bg_image_opacity
+          label: 背景图片透明度
+          value: 0.2
+          min: 0.05
+          max: 1
+          step: 0.05
+          help: 页脚背景图的不透明度，值越小越淡，避免影响内容阅读
+        - $formkit: attachment
+          name: bg_image_dark
+          label: 页脚背景图片（深色模式）
+          value: ""
+          help: 深色模式下页脚背景图片，留空则复用上方浅色模式的背景图
+        - $formkit: range
+          name: bg_image_opacity_dark
+          label: 背景图片透明度（深色模式）
+          value: 0.2
+          min: 0.05
+          max: 1
+          step: 0.05
+          help: 深色模式下页脚背景图的不透明度，留空则复用浅色模式的透明度
+        - $formkit: color
+          name: social_color
+          label: 页脚文字与图标颜色
+          value: ""
+          help: 页脚品牌区文字（名称、标语、简介）及社交图标的颜色，留空则使用主题默认文字色
+        - $formkit: color
+          name: social_color_dark
+          label: 页脚文字与图标颜色（深色模式）
+          value: ""
+          help: 深色模式下页脚品牌区文字及社交图标颜色，留空则复用上方浅色模式的颜色
+        - $formkit: url
+          name: privacy_url
+          label: 隐私政策页面地址
+          value: ""
+          help: 留空则不显示页脚"隐私政策"链接
+        - $formkit: url
+          name: terms_url
+          label: 使用条款页面地址
+          value: ""
+          help: 留空则不显示页脚"使用条款"链接
+        - $formkit: array
+          name: links
+          label: 页脚链接
+          addLabel: 添加链接
+          min: 0
+          max: 30
+          help: 自定义页脚链接，配置显示名称和地址，按添加顺序遍历显示
+          value:
+            - name: 首页
+              url: /
+            - name: 关于我们
+              url: /about
+            - name: 友情链接
+              url: /links
+            - name: 标签
+              url: /tags
+          children:
+            - $formkit: text
+              name: name
+              label: 显示名称
+              value: ""
+            - $formkit: url
+              name: url
+              label: 链接地址
+              value: ""
+
     - group: style
       label: 主题样式
       formSchema:
@@ -139,12 +250,7 @@ spec:
 
     - group: social
       label: 社交链接
-      formSchema:
-        - $formkit: switch
-          name: show_footer_author
-          label: 显示页脚博主信息
-          value: true
-          help: 在页脚显示博主头像、昵称、简介和社交链接卡片
+      formSchema:        
         - $formkit: text
           name: author_name
           label: 博主昵称
@@ -174,6 +280,11 @@ spec:
           label: 掘金
           value: ""
         - $formkit: url
+          name: wechat
+          label: 微信公众号
+          value: ""
+          help: 跳转微信公众号任意文章页（没有可留空）
+        - $formkit: url
           name: csdn
           label: CSDN
           value: ""
@@ -188,9 +299,15 @@ spec:
           label: RSS 订阅
           value: ""
           help: 留空则使用默认 RSS 地址
+        - $formkit: url
+          name: footer_subscribe_action
+          label: 页脚订阅表单提交地址
+          value: ""
+          help: 第三方邮件订阅服务地址（如 Mailchimp），留空则仅展示表单不提交
+
 
     - group: featured
-      label: 精选轮播
+      label: 首页轮播
       formSchema:
         - $formkit: switch
           name: show_featured
@@ -244,6 +361,16 @@ spec:
               value: pinned
             - label: 不显示
               value: none
+        - $formkit: radio
+          name: home_load_mode
+          label: 首页加载方式
+          value: pagination
+          options:
+            - label: 分页
+              value: pagination
+            - label: 滚动加载
+              value: scroll
+          help: 首页文章列表的加载方式。分页：点击翻页切换（保留轮播图）；滚动加载：滚动到底部自动加载更多（同时保留手动"查看更多文章"按钮作为兜底）
 
     - group: sidebar
       label: 侧边栏设置

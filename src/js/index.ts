@@ -241,3 +241,196 @@
     });
   });
 })();
+
+// Client-side navigation — 查看更多文章 / 翻页 / 滚动加载（不刷新整页，保留轮播图）
+(function () {
+  "use strict";
+
+  const contentArea = document.querySelector(".content-area") as HTMLElement | null;
+  const articleList = document.querySelector(".article-list") as HTMLElement | null;
+  if (!contentArea || !articleList) return;
+
+  // 加载方式：pagination（翻页）或 scroll（滚动加载），由模板 data-load-mode 传入
+  const loadMode = contentArea.dataset.loadMode || "pagination";
+
+  // 重新应用当前激活的排序（加载新文章后保持顺序一致）
+  function reapplySort(): void {
+    const active = contentArea!.querySelector(".filter-tab.active") as HTMLElement | null;
+    const mode = (active?.dataset.sort as "latest" | "hot" | "recommend") || "latest";
+    if (mode === "latest") return;
+
+    const cards = Array.from(articleList!.querySelectorAll(".article-card")) as HTMLElement[];
+    const sorted = cards.sort((a, b) => {
+      if (mode === "hot") {
+        return parseInt(b.dataset.visit || "0", 10) - parseInt(a.dataset.visit || "0", 10);
+      }
+      if (mode === "recommend") {
+        return parseInt(b.dataset.upvote || "0", 10) - parseInt(a.dataset.upvote || "0", 10);
+      }
+      return 0;
+    });
+    sorted.forEach((card) => articleList!.appendChild(card));
+  }
+
+  async function fetchPageDoc(url: string): Promise<Document | null> {
+    try {
+      const res = await fetch(url, { headers: { Accept: "text/html" } });
+      if (!res.ok) return null;
+      const text = await res.text();
+      return new DOMParser().parseFromString(text, "text/html");
+    } catch {
+      return null;
+    }
+  }
+
+  // 根据当前分页信息构造任意页码的 URL（兼容 ?page=N 与 /page/N 两种形式）
+  function buildPageUrl(
+    targetPage: number,
+    currentPage: number,
+    nextUrl: string | undefined,
+    prevUrl: string | undefined
+  ): string | null {
+    const refUrl = targetPage > currentPage ? nextUrl : prevUrl;
+    if (!refUrl) return null;
+    const base = new URL(refUrl, window.location.origin);
+    if (base.searchParams.has("page")) {
+      base.searchParams.set("page", String(targetPage));
+      return base.pathname + base.search + base.hash;
+    }
+    const m = base.pathname.match(/^(.*\/)page\/\d+(\/?)$/);
+    if (m) {
+      return m[1] + "page/" + targetPage + (m[2] || "");
+    }
+    // 兜底：替换引用页数字（独立数字，避免误伤）
+    const refPage = targetPage > currentPage ? currentPage + 1 : currentPage - 1;
+    return refUrl.replace(new RegExp("(?<![\\d])" + refPage + "(?![\\d])"), String(targetPage));
+  }
+
+
+  // 从已加载页面中提取「下一页」地址（优先取「查看更多」按钮）
+  function getNextUrl(doc: Document): string | null {
+    const vm = doc.querySelector(".mt-4.text-center a.btn-outline") as HTMLAnchorElement | null;
+    return vm ? vm.getAttribute("href") : null;
+  }
+
+  // 滚动加载模式下，更新哨兵与「查看更多」按钮的下一页地址；无更多页则移除
+  function updateNext(doc: Document): void {
+    const nu = getNextUrl(doc);
+    const sentinel = contentArea!.querySelector(".load-sentinel") as HTMLElement | null;
+    const viewMore = contentArea!.querySelector(
+      ".mt-4.text-center a.btn-outline"
+    ) as HTMLAnchorElement | null;
+    if (nu) {
+      if (sentinel) sentinel.dataset.nextUrl = nu;
+      if (viewMore) viewMore.setAttribute("href", nu);
+    } else {
+      sentinel?.remove();
+      viewMore?.closest(".mt-4")?.remove();
+    }
+  }
+
+  let loading = false;
+
+  async function loadNext(url: string, append: boolean): Promise<void> {
+    if (loading || !url) return;
+    loading = true;
+    const sentinel = contentArea!.querySelector(".load-sentinel") as HTMLElement | null;
+    sentinel?.classList.add("is-loading");
+
+    const doc = await fetchPageDoc(url);
+    sentinel?.classList.remove("is-loading");
+
+    // 请求失败则回退到整页跳转
+    if (!doc) {
+      window.location.href = url;
+      loading = false;
+      return;
+    }
+
+    const fetchedList = doc.querySelector(".article-list");
+    if (!fetchedList) {
+      window.location.href = url;
+      loading = false;
+      return;
+    }
+
+    if (append) {
+      articleList!.insertAdjacentHTML("beforeend", fetchedList.innerHTML);
+      updateNext(doc);
+    } else {
+      articleList!.innerHTML = fetchedList.innerHTML;
+      // 分页模式：同步翻页导航并滚动到顶部
+      const newPagination = doc.querySelector(".pagination");
+      const oldPagination = contentArea!.querySelector(".pagination");
+      if (newPagination && oldPagination) {
+        oldPagination.outerHTML = newPagination.outerHTML;
+      } else if (!newPagination && oldPagination) {
+        oldPagination.remove();
+      }
+      try {
+        history.pushState(null, "", url);
+      } catch {}
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    reapplySort();
+    loading = false;
+  }
+
+  // 点击：查看更多文章（追加）或翻页（替换）。两种模式按需只渲染其中一种控件
+  contentArea.addEventListener("click", async (e) => {
+    const target = e.target as HTMLElement;
+    const viewMore = target.closest("a.btn-outline") as HTMLAnchorElement | null;
+    const pageLink = target.closest(".pagination a") as HTMLAnchorElement | null;
+    const link = viewMore || pageLink;
+    if (!link) return;
+    // 当前页无需重新加载
+    if (link.classList.contains("active")) return;
+
+    e.preventDefault();
+    const url = link.getAttribute("href");
+    if (!url) return;
+
+    await loadNext(url, !!viewMore);
+  });
+
+  // 提交：跳转输入框（跳至指定页码）
+  contentArea.addEventListener("submit", async (e) => {
+    const form = (e.target as HTMLElement).closest(".pagination-jump") as HTMLFormElement | null;
+    if (!form) return;
+    e.preventDefault();
+
+    const pag = contentArea.querySelector(".pagination") as HTMLElement | null;
+    if (!pag) return;
+    const total = parseInt(pag.dataset.total || "1", 10);
+    const current = parseInt(pag.dataset.current || "1", 10);
+    const nextUrl = pag.dataset.nextUrl;
+    const prevUrl = pag.dataset.prevUrl;
+
+    const input = form.querySelector("input") as HTMLInputElement | null;
+    let page = parseInt(input?.value || "", 10);
+    if (!page || page < 1) page = 1;
+    if (page > total) page = total;
+
+    const url = buildPageUrl(page, current, nextUrl, prevUrl);
+    if (url) await loadNext(url, false);
+    if (input) input.value = "";
+  });
+
+  // 滚动加载模式：IntersectionObserver 监听底部哨兵，进入视口附近自动加载
+  if (loadMode === "scroll") {
+    const sentinel = contentArea.querySelector(".load-sentinel") as HTMLElement | null;
+    if (sentinel && "IntersectionObserver" in window) {
+      const io = new IntersectionObserver(
+        async (entries) => {
+          if (entries[0].isIntersecting) {
+            const url = sentinel.dataset.nextUrl;
+            if (url) await loadNext(url, true);
+          }
+        },
+        { rootMargin: "400px 0px" }
+      );
+      io.observe(sentinel);
+    }
+  }
+})();
